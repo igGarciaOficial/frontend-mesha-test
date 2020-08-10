@@ -19,7 +19,12 @@
                 type="number"
             ></v-text-field>
 
+            <div @click='chooseImageAction' style="cursor: pointer;">
+                <img src="../../assets/camera.svg" />
+                <span>Adicionar foto</span>
+            </div>
             
+
     <v-col cols="12" sm="6" md="4">
       <v-dialog
         ref="dialog"
@@ -58,12 +63,15 @@
                 Limpar formulário
             </v-btn>
         </v-form>
+        <ImageCropper :displayButton='false'  :disableUpload='true' ref='image-upload-component' />
     </v-container>
 </template>
 
 <script>
 import axios from 'axios';
 import {mapState} from 'vuex';
+
+import ImageCropper from '@/components/ImageCropper';
 
 export default {
     name: 'Cadastro-de-paciente',
@@ -80,6 +88,10 @@ export default {
             menu2: false,
 
         }
+    },
+
+    components:{
+        ImageCropper,
     },
 
     computed:{
@@ -118,7 +130,12 @@ export default {
                 }
             ).then(res => {
                 alert('Paciente criado com sucesso!');
-                console.log(res);
+                
+                if(this.$refs['image-upload-component'].hasImg()){
+                    this.$refs['image-upload-component'].setUserId(res.data.id);
+                    this.$refs['image-upload-component'].uploadPhotoToServe();
+                }
+
                 this.clearForm();
             }).catch(err => {
                 alert('Erro ao cadastrar o paciente: ' + err['ERROR']);
@@ -135,6 +152,10 @@ export default {
             this.menu = false;
             this.modal = false;
             this.menu2 = false;
+        },
+
+        chooseImageAction(){
+            this.$refs['image-upload-component'].toogleModal();
         }
     }
 }

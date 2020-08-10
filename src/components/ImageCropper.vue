@@ -17,11 +17,13 @@
                 </div>
                 <div class='div-buttons'>
                     <button class='buttonPickerImg' @click="openChoiceBoxFile">Escolher imagem</button>
-                    <button class='buttonUpload' @click="uploadPhotoToServe">Upload</button>
+                    <button class='buttonGuard' v-if="disableUpload" @click="toogleModal"> Guardar </button>
+                    <button class='buttonUpload' v-if="!disableUpload" @click="uploadPhotoToServe">Upload</button>
                 </div>
 
-                <input type='file' class='hidden' @change="fileChanged" ref='inputFile' />
-
+                <form enctype='multipart/form-data' method="POST">
+                    <input type='file' class='hidden' name='image' @change="fileChanged" ref='inputFile' />
+                </form>
             </div>
         </div>
 
@@ -30,13 +32,16 @@
 </template>
 
 <script>
+    import axios from 'axios';
     import { mapState } from "vuex"
     export default {
 
         data:()=>(
             {
                 showModal: false,
-                showDefaultImg: true
+                showDefaultImg: true,
+                userId: null,
+                selectedPhoto: null
             }
         ),
 
@@ -44,6 +49,11 @@
             displayButton: {
                 type: Boolean,
                 default: true
+            },
+
+            disableUpload: {
+                type: Boolean,
+                default: false
             }
         },
 
@@ -52,10 +62,32 @@
                 this.showModal = !this.showModal;
                 if(!this.showModal)
                     this.showDefaultImg = true;
+            },
+
+            setUserId(userId){
+                this.userId = userId;
             }, 
 
+            hasImg(){
+                return this.selectedPhoto != null;
+            },
+
             uploadPhotoToServe(){
-                alert('Up img');
+                const formData = new FormData();
+                const imageFile = this.selectedPhoto;
+                formData.append('avatar', imageFile);
+
+                axios.post(this.serverURLBase + `user/imgUserUpload/${this.userId}`, formData, {
+                    headers : {
+                        "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
+                    }
+                }).then(res => {
+                    console.log(res.config);
+                    alert('Upload feito com sucesso.');
+                }).catch(err => {
+                    alert('Erro ao realizar upload.');
+                    console.log(err);
+                })
             },
 
             fileChanged(event){
@@ -78,7 +110,7 @@
         },
 
         computed:{
-            ...mapState(["photoUserSource"]),
+            ...mapState(["photoUserSource", "serverURLBase"]),
         },
 
     }
@@ -111,6 +143,12 @@
         position: relative;
         bottom: 10px;
         margin-top: 15px;
+    }
+    .buttonGuard{
+        background-color: #0ea14e;
+        color: #ffffff;
+        padding: 7px 15px;
+        border-radius: 5px;
     }
 
     .buttonPickerImg{
