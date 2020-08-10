@@ -9,7 +9,8 @@ export default new Vuex.Store({
         SidebarColor: 'white',
         SidebarBg: 'black',
         UserName: 'Igor Garcia',
-        photoUserSource: '/account-circle.svg'
+        photoUserSource: '/account-circle.svg',
+        serverURLBase: 'http://localhost:8000/api/',
       },
     mutations: {
         SET_SIDEBAR_DRAWER (state, payload) {

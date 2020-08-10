@@ -43,7 +43,6 @@ export default {
         }, 
 
         tick(){
-            console.log('tick');
             this.secondsCalc += 1;
 
             if(this.secondsCalc == 60){

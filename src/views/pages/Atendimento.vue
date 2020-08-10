@@ -48,7 +48,7 @@
 
                 <v-col cols='12' md='10'>
                     <v-autocomplete
-                        v-model="selectedCompliantsPatient"
+                        v-model="selectedProceduresPatient"
                         :items="procedures"
                         dense
                         item-text="name"
@@ -61,14 +61,6 @@
                         outlined
                     ></v-autocomplete>
 
-                    <v-checkbox v-model="outherProcedures" label="Outro(s) procedimento(s)." />
-                    <v-textarea
-                        v-show="outherProcedures"
-                        outlined
-                        v-model = "describeOutherProcedures"
-                        name="input-7-4"
-                        label="Descreva os procedimentos separandos-os por ponto e vírgula(;)."
-                    />
                 </v-col>
             </div>
               
@@ -79,11 +71,18 @@
             <p> Iniciar <br />atendimento </p>
         </div>
 
+        <ProgressCircle ref='progress-component' message="Aguarde um momento. Estamos gerando o relatório."/>
     </v-content>
 </template>
 
 <script>
 import Timer from '@/components/Timer';
+import ProgressCircle from '@/components/progress-circular';
+
+import axios from 'axios';
+
+import generatePDF from '../../utils/generateRelatorio.js';
+import { mapState } from 'vuex';
 export default {
     data(){
         return {
@@ -108,24 +107,52 @@ export default {
 
             selectedPatient: null,
             selectedCompliantsPatient: [],
+            selectedProceduresPatient: [],
             outherComplaints: false,
-            outherProcedures: false,
 
             descriveOutherComplaints:'',
-            describeOutherProcedures:'',
+
+            timerInfoData: {},
+            atendimentoId: null,
         }
     }, 
 
-    computed: {
-        itens () {
-            return this.avaliablePatients.map(patient => {
-                return patient.id + ' - ' + patient.name;
-            })
-        }, 
+    mounted(){
+
+        // Recuperando usuarios do tipo paciente;
+
+        axios.get(this.serverURLBase + 'patient/').then(res => {
+            this.avaliablePatients = res.data.data;
+        }).catch(err => {
+            alert('Erro ao recuperar dados de pacientes');
+            console.log('Error:', err);
+            this.avaliablePatients = [];
+        });
+
+        // Recuperando queixas ...
+        axios.get(this.serverURLBase + 'complaints')
+        .then(res => {
+            this.complaints = res.data.data;
+        }).catch(err =>{
+            console.log(err);
+        })
+
+        //Recuperando procedimentos
+        axios.get(this.serverURLBase + 'procedures')
+        .then(res => {
+            this.procedures = res.data.data;
+        }).catch(err => {
+            console.log(err);
+        })
+    },
+
+    computed:{
+        ...mapState(['serverURLBase'])
     },
 
     components: {
         Timer, 
+        ProgressCircle
     },
 
     methods: {
@@ -134,9 +161,75 @@ export default {
             this.initing = true;
         },
 
+        getDataToGenerateRelatorio(){
+            axios.get(this.serverURLBase + `user/profile/${this.selectedPatient}`)
+            .then(result => {
+                let response = result.data;
+                let complaints2 = this.descriveOutherComplaints.split(';');
+
+                //generatePDF(nome, email, telefone, queixas = [], procedimentos = [], tempoAtendimento='00:00:00', 
+                // dataAtendimento='01/01/2020', idAtendimento, idPaciente, tempoProcedimentos);
+
+                axios.get(this.serverURLBase + `attendance/${this.atendimentoId}`).then(res => {
+
+                    this.$refs['progress-component'].toogleOverlay();
+                    this.initing = false;
+
+                    
+                    generatePDF(response.name, response.email, response.phone, 
+                        this.selectedCompliantsPatient.concat(complaints2), 
+                        this.selectedProceduresPatient, this.timerInfoData.duration, 
+                        this.timerInfoData.init, response.id, this.selectedPatient, res.data.proceduresTime
+                    );
+                });
+                
+
+            }).catch(err => {
+                this.$refs['progress-component'].toogleOverlay();
+                this.initing = false;
+                alert('Erro ao recuperar informações do usuário');
+                console.log(err);
+            });
+        },
+
         stopAttendance(){
-            this.$refs['cronometro'].stopTimer();
-            this.initing = false;
+            let encerrarAtendimento = confirm(`Você realmente deseja finalizar o atendimento?`);
+            if (encerrarAtendimento){
+                this.$refs['cronometro'].stopTimer();
+                this.timerInfoData = this.$refs['cronometro'].getCurrenteData();
+
+                this.$refs['progress-component'].toogleOverlay();
+                
+                axios.post(
+                    this.serverURLBase + `attendance`,  
+                    {
+                        "inited": this.timerInfoData.init, 
+                        "finished": this.timerInfoData.finish,
+                        "patient": this.selectedPatient,
+                        "employeer": '2',
+                        complaints: this.selectedCompliantsPatient,
+                        procedures: this.selectedProceduresPatient,
+                        outherComplaints: this.descriveOutherComplaints.split(';')
+                    }, 
+                    {
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    }
+                )
+                .then(res => {
+                    console.log('Atendimento salvo com sucesso!', res.data.id);
+                    this.atendimentoId =res.data.id;
+                    this.getDataToGenerateRelatorio();
+                })
+                .catch(err => {
+                    this.$refs['progress-component'].toogleOverlay();
+                    this.initing = false;
+                    alert('Erro ao salvar atendimento.');
+                    console.log(err);
+                });
+
+            }
         }
     }
 }
