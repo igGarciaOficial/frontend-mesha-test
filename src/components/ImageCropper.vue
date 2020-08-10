@@ -11,14 +11,16 @@
 
                 <div class='img-content'>
                     
-                    <img v-show="showDefaultImg"   ref='img-default'   :src="photoUserSource"  class="img-display" />
-                    <img v-show="!showDefaultImg"  ref='img-atualizado'   class="img-display" />
-                    
+                    <img v-show="showImgNow == 0"   ref='img-default'   :src="photoUserSource"  class="img-display" />
+                    <img v-show="showImgNow == 1"  ref='img-atualizado'   class="img-display" />
+                    <img v-show='showImgNow == 2'    ref='croped-img' :src="destination" class="img-display"/>
                 </div>
                 <div class='div-buttons'>
                     <button class='buttonPickerImg' @click="openChoiceBoxFile">Escolher imagem</button>
                     <button class='buttonGuard' v-if="disableUpload" @click="toogleModal"> Guardar </button>
                     <button class='buttonUpload' v-if="!disableUpload" @click="uploadPhotoToServe">Upload</button>
+                    <button @click='cutImgAction' v-show='showImgNow!=2'>Cortar imagem</button>
+                    <button @click='acoplarCropper' v-show='showImgNow==2'>Voltar</button>
                 </div>
 
                 <form enctype='multipart/form-data' method="POST">
@@ -33,6 +35,8 @@
 
 <script>
     import axios from 'axios';
+    import Cropper from 'cropperjs';
+
     import { mapState } from "vuex"
     export default {
 
@@ -41,7 +45,16 @@
                 showModal: false,
                 showDefaultImg: true,
                 userId: null,
-                selectedPhoto: null
+                selectedPhoto: null,
+                finishCropped: false,
+
+                cropper: {},
+                destination: {},
+                image: {},
+
+                showImgNow: 0,
+                wasCutted : false,
+                cuttedImg: null,
             }
         ),
 
@@ -73,21 +86,38 @@
             },
 
             uploadPhotoToServe(){
-                const formData = new FormData();
-                const imageFile = this.selectedPhoto;
-                formData.append('avatar', imageFile);
+                if(!this.wasCutted){
 
-                axios.post(this.serverURLBase + `user/imgUserUpload/${this.userId}`, formData, {
-                    headers : {
-                        "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
-                    }
-                }).then(res => {
-                    console.log(res.config);
-                    alert('Upload feito com sucesso.');
-                }).catch(err => {
-                    alert('Erro ao realizar upload.');
-                    console.log(err);
-                })
+                    const formData = new FormData();
+                    let imageFile = this.selectedPhoto;
+
+                    formData.append('avatar', imageFile);
+
+                    axios.post(this.serverURLBase + `user/imgUserUpload/${this.userId}`, formData, {
+                        headers : {
+                            "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
+                        }
+                    }).then(res => {
+                        console.log(res.config);
+                        alert('Upload feito com sucesso.');
+                    }).catch(err => {
+                        alert('Erro ao realizar upload.');
+                        console.log(err);
+                    });
+                }else{
+                    let formData = "avatar=" + this.cuttedImg;
+                    axios.post(this.serverURLBase + `user/imgUserUpload/${this.userId}`, formData, {
+                        headers : {
+                            "Content-Type": "text/plain",
+                        }
+                    }).then(res => {
+                        console.log(res.config);
+                        alert('Upload feito com sucesso.');
+                    }).catch(err => {
+                        alert('Erro ao realizar upload.');
+                        console.log(err);
+                    });
+                }
             },
 
             fileChanged(event){
@@ -96,7 +126,7 @@
                 
                 reader.addEventListener('load', function(){
                     this.$refs['img-atualizado'].src = reader.result;
-                    this.showDefaultImg = false;
+                    this.acoplarCropper();
                 }.bind(this));
 
                 reader.readAsDataURL(this.selectedPhoto)
@@ -104,8 +134,33 @@
 
             openChoiceBoxFile(){
                 this.$refs['inputFile'].click();
-            }
+            },
 
+            acoplarCropper(){
+                this.showImgNow = 1;
+                this.wasCutted = false;
+                this.image = this.$refs['img-atualizado'];
+                
+                this.cropper = new Cropper(this.image, {
+                    scalable: true,
+                    zoomable: true,
+                    aspectRatio: 16/9,
+
+                    crop: () => {
+                        const canvas = this.cropper.getCroppedCanvas();
+                        this.destination = canvas.toDataURL('image/png');
+                    }
+                })
+
+                setTimeout(this.cropper.crop(), 2000)
+            },
+
+            cutImgAction(){
+                this.cuttedImg = this.cropper.getCroppedCanvas();
+                this.cropper.destroy()
+                this.showImgNow = 2;
+                this.wasCutted = true;
+            }
 
         },
 
