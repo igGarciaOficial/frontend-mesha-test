@@ -6,7 +6,10 @@
             <Timer class="timer" ref='cronometro'/>
             <button @click="stopAttendance" class='stop-timer'>Encerrar atendimento</button>
 
-            <v-dividir />
+        <div>
+            <span> Conta realizada (R$): {{bucket_user}} </span>
+        </div>
+            
             <div>
                 <v-col cols='12' md='10'>
                     <v-autocomplete
@@ -82,6 +85,7 @@ import ProgressCircle from '@/components/progress-circular';
 import axios from 'axios';
 
 import generatePDF from '../../utils/generateRelatorio.js';
+import BuscaBinaria from '@/utils/BuscaBinaria.js';
 import { mapState } from 'vuex';
 export default {
     data(){
@@ -114,6 +118,8 @@ export default {
 
             timerInfoData: {},
             atendimentoId: null,
+            bucket_user: 0,
+            lastLengthProcedures : 0
         }
     }, 
 
@@ -122,7 +128,7 @@ export default {
         // Recuperando usuarios do tipo paciente;
 
         axios.get(this.serverURLBase + 'patient/').then(res => {
-            this.avaliablePatients = res.data.data;
+            this.avaliablePatients = res.data.data.data;
         }).catch(err => {
             alert('Erro ao recuperar dados de pacientes');
             console.log('Error:', err);
@@ -231,7 +237,30 @@ export default {
 
             }
         }
-    }
+    },
+
+    watch: {
+        selectedProceduresPatient: function(){
+            if (!this.selectedProceduresPatient.length){
+                this.bucket_user = 0;
+                return;
+            }
+
+            let operacaoSoma = this.lastLengthProcedures < this.selectedProceduresPatient.length
+
+            this.selectedProceduresPatient.map(item => {
+                //lista, valorAlvo, saoObjetos=false, indiceObjeto=null
+                let result = BuscaBinaria(this.procedures, item, true, 'id');
+                let price = Number.parseFloat(this.procedures[ result ].price);
+                if(operacaoSoma)
+                    this.bucket_user += price;
+                else 
+                    this.bucket_user -= price;
+            });
+
+            this.lastLengthProcedures = this.selectedProceduresPatient.length;
+        }
+    },
 }
 
 </script>
