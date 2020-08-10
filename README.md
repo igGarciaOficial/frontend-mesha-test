@@ -1,24 +1,25 @@
-# frontend-mesha-test
+# Projeto frontend para teste de seleção da Mesha tecnologia
+--------------------------------
 
-## Project setup
-```
-npm install
-```
+## Requerimentos para rodar o projeto
+------
+* Nodejs com versão 12.18.3
+* npm com versão 6.14.6
+* Plugin: Allow-Controll-Allow-Origin (nos navegadores). Serão utilizados caso você esteja rodando backend e frontend na mesma máquina e esteja utilizando o protocolo http.
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## Processo de instalação
+-----
+Após baixar o repositório, vá pelo terminal/prompt até o diretório do projeto.
+Nele, rode o seguinte comando:
 
-### Compiles and minifies for production
-```
-npm run build
-```
+    npm install
 
-### Lints and fixes files
-```
-npm run lint
-```
+Isto, baixará as dependências utilizadas no projeto. Finalizado este processo, você já pode rodar:
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+    npm run serve
+
+Este comando, já colocará o projeto no ar. Caso queira gerar uma versão para produção, rode:
+
+    npm run build.
+    
+E caso queira customizar as configurações, você pode visitar [Configuration Reference](https://cli.vuejs.org/config/).

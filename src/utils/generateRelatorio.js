@@ -1,7 +1,7 @@
 import jspdf from 'jspdf';
 
 
-export default function generatePDF(nome, email, telefone, queixas = [], procedimentos = [], tempoAtendimento='00:00:00', dataAtendimento='01/01/2020', idAtendimento=null, idPaciente=null, tempoProcedimentos='00:00:00'){
+export default function generatePDF(nome, email, telefone, queixas = [], procedimentos = [], tempoAtendimento='00:00:00', dataAtendimento='01/01/2020', idAtendimento=null, idPaciente=null, tempoProcedimentos='00:00:00', saldoDevedor=0){
 
     let doc = new jspdf();
 
@@ -13,6 +13,7 @@ export default function generatePDF(nome, email, telefone, queixas = [], procedi
         [' ', ` Gerado em: ${dataAtendimento}`, ''],
         [' ', ` Tempo de duração: ${tempoAtendimento}`, ''],
         [' ', ` Número de identificação do atendimento: ${idAtendimento}`, ''],
+        [' ', ` Conta a pagar referente ao atendimento(R$): ${saldoDevedor}`, ''],
         ['*', '', ''],
         [' ', 'Dados do paciente', 'center'],
         ['*', '', ''],

@@ -173,9 +173,7 @@ export default {
                 let response = result.data;
                 let complaints2 = this.descriveOutherComplaints.split(';');
 
-                //generatePDF(nome, email, telefone, queixas = [], procedimentos = [], tempoAtendimento='00:00:00', 
-                // dataAtendimento='01/01/2020', idAtendimento, idPaciente, tempoProcedimentos);
-
+                
                 axios.get(this.serverURLBase + `attendance/${this.atendimentoId}`).then(res => {
 
                     this.$refs['progress-component'].toogleOverlay();
@@ -185,7 +183,8 @@ export default {
                     generatePDF(response.name, response.email, response.phone, 
                         this.selectedCompliantsPatient.concat(complaints2), 
                         this.selectedProceduresPatient, this.timerInfoData.duration, 
-                        this.timerInfoData.init, response.id, this.selectedPatient, res.data.proceduresTime
+                        this.timerInfoData.init, response.id, this.selectedPatient, res.data.proceduresTime,
+                        this.bucket_user
                     );
                 });
                 
@@ -212,7 +211,7 @@ export default {
                         "inited": this.timerInfoData.init, 
                         "finished": this.timerInfoData.finish,
                         "patient": this.selectedPatient,
-                        "employeer": '2',
+                        "employeer": '1',
                         complaints: this.selectedCompliantsPatient,
                         procedures: this.selectedProceduresPatient,
                         outherComplaints: this.descriveOutherComplaints.split(';')
