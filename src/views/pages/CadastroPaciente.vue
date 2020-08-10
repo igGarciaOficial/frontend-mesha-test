@@ -4,7 +4,7 @@
         <v-form class="form" ref="form">
 
             <v-text-field v-model="name"
-                label="Name" required
+                label="Nome" required
             ></v-text-field>
 
             <v-text-field
@@ -62,6 +62,8 @@
 </template>
 
 <script>
+import axios from 'axios';
+import {mapState} from 'vuex';
 
 export default {
     name: 'Cadastro-de-paciente',
@@ -80,10 +82,49 @@ export default {
         }
     },
 
-    methods: {
-        validateForm(){},
+    computed:{
+        ...mapState(['serverURLBase'])
+    },
 
-        sendData(){},
+    methods: {
+
+        validateEmail: (email) => {
+            var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(email);
+        },
+
+        validateForm(){
+
+            return this.name.trim() && (this.phone.length==11) && 
+            this.date && this.validateEmail(this.email);
+        },
+
+        sendData(){
+            if(!this.validateForm()){
+                alert('Verifique se todos os campos estão preenchidos');
+                return;
+            }
+
+            axios.post(this.serverURLBase + 'user/', {
+                    name: this.name,
+                    email: this.email,
+                    phone: this.phone,
+                    born:  this.date
+                }, 
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                }
+            ).then(res => {
+                alert('Paciente criado com sucesso!');
+                console.log(res);
+                this.clearForm();
+            }).catch(err => {
+                alert('Erro ao cadastrar o paciente: ' + err['ERROR']);
+                
+            })
+        },
 
         clearForm(){
             this.email = '';
