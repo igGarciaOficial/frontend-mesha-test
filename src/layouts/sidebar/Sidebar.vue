@@ -79,6 +79,11 @@ export default {
         title: "Iniciar atendimento",
         icon: '',
         to: '/attendance/new'
+      },
+      {
+        title: "Cadastrar procedimento",
+        icon: '',
+        to: '/procedure/new'
       }
 
     ]

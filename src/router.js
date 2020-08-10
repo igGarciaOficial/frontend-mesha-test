@@ -8,6 +8,7 @@ import Profile from '@/views/pages/Profile';
 import Layout from '@/layouts/Layout';
 import CadastroPaciente from '@/views/pages/CadastroPaciente';
 import Atendimento from '@/views/pages/Atendimento';
+import CadastroProcedimento from '@/views/pages/CadastroProcedimentoMedico';
 
 export default new Router({
     mode: 'hash',
@@ -39,6 +40,11 @@ export default new Router({
                     name:'attendance',
                     path: 'attendance/new',
                     component: Atendimento
+                },
+                {
+                    name: 'procedure',
+                    path: 'procedure/new',
+                    component: CadastroProcedimento
                 }
 
             ]
