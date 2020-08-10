@@ -9,6 +9,7 @@ import Layout from '@/layouts/Layout';
 import CadastroPaciente from '@/views/pages/CadastroPaciente';
 import Atendimento from '@/views/pages/Atendimento';
 import CadastroProcedimento from '@/views/pages/CadastroProcedimentoMedico';
+import ImportCSVFile from '@/views/pages/ImportCsvFile';
 
 export default new Router({
     mode: 'hash',
@@ -45,6 +46,11 @@ export default new Router({
                     name: 'procedure',
                     path: 'procedure/new',
                     component: CadastroProcedimento
+                },
+                {
+                    name: 'importCSV',
+                    path: 'import-csv-file/',
+                    component: ImportCSVFile
                 }
 
             ]

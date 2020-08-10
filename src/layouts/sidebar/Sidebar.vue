@@ -84,6 +84,11 @@ export default {
         title: "Cadastrar procedimento",
         icon: '',
         to: '/procedure/new'
+      },
+      {
+        title: "Importar CSV",
+        icon: '',
+        to: '/import-csv-file/'
       }
 
     ]
