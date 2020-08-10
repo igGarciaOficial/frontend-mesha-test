@@ -11,7 +11,7 @@
                   Atendimentos realizados
                 </v-card-title>
                 <v-card-text class='big-number'>
-                  80
+                  {{atendimentosRealizados}}
                 </v-card-text>
               </v-card>
             </v-col>
@@ -25,7 +25,7 @@
                   Pacientes cadastrados
                 </v-card-title>
                 <v-card-text class='big-number'>
-                  60
+                  {{pacientesCadastrados}}
                 </v-card-text>
               </v-card>
             </v-col>
@@ -39,7 +39,7 @@
                   Procedimentos médicos
                 </v-card-title>
                 <v-card-text class='big-number'>
-                  110
+                  {{procedimentosCadastrados}}
                 </v-card-text>
               </v-card>
             </v-col>
@@ -53,7 +53,7 @@
                   Queixas
                 </v-card-title>
                 <v-card-text class='big-number'>
-                  50
+                  {{ queixasRegistradas }}
                 </v-card-text>
               </v-card>
             </v-col>
@@ -79,13 +79,65 @@
 
 
 <script>
+import axios from 'axios';
+import {mapState} from 'vuex';
 
 export default {
   name: "BasicDashboard",
   data: () => ({
-    events: []
+    events: [],
+
+    atendimentosRealizados: 0,
+    pacientesCadastrados: 0,
+    procedimentosCadastrados: 0,
+    queixasRegistradas: 0,
+
   }),
-  
+  computed: {
+    ...mapState(['serverURLBase'])
+  },
+  mounted(){
+
+    // Get total de atendimentos
+    axios.get(this.serverURLBase + 'attendance/')
+    .then(res => {
+      this.atendimentosRealizados = res.data.total;
+    }).catch(err => {
+      alert('Erro ao coletar atendimentos')
+      console.log(err);
+    });
+
+    // Get procedimnetos
+    axios.get(this.serverURLBase + 'procedures/')
+    .then(res => {
+      this.procedimentosCadastrados = res.data.total;
+    }).catch(err => {
+      alert('Erro ao coletar procedimentos');
+      console.log(err);
+    });
+
+    //Get patientes
+    axios.get(this.serverURLBase +  'patient/')
+    .then(res => {
+        this.pacientesCadastrados = res.data.data.total;
+      })
+    .catch(err => {
+      alert('Erro ao coletar pacientes');
+      console.log(err);
+    });
+
+    axios.get(this.serverURLBase + 'complaints/')
+    .then(res => {
+      this.queixasRegistradas = res.data.total
+    })
+    .catch(err => {
+      alert('Erro ao coletar queixas');
+      console.log(err);
+    })
+
+
+  },
+
   methods: {
     goToPath(route){
       this.$router.replace(route);
